@@ -1,0 +1,29 @@
+{
+  "name": "http-server-ts",
+  "version": "1.0.0",
+  "description": "An Http Server built with TypeScript",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "ts-node src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ImadRahhali/HTTP-Server-TS.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ImadRahhali/HTTP-Server-TS/issues"
+  },
+  "homepage": "https://github.com/ImadRahhali/HTTP-Server-TS#readme",
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  }
+}
