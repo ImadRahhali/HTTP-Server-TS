@@ -5,18 +5,14 @@ import {
   serializeHttpResponse,
 } from "./httpResponseBuilder.ts";
 import { Router } from "./router.ts";
+import { serveStaticFile } from "./handlers/staticFileHandler.ts";
 import type { HttpRequest } from "./types.ts";
 
 const router = new Router();
 
-// Register routes
-router.register("GET", "/", () =>
-  buildHttpResponse(200, "<h1>Home Page</h1>", { "Content-Type": "text/html" })
-);
-
-router.register("GET", "/about", () =>
-  buildHttpResponse(200, "<h1>About Page</h1>", { "Content-Type": "text/html" })
-);
+router.register("GET", "/", serveStaticFile);
+router.register("GET", "/index.html", serveStaticFile);
+router.register("GET", "/about.html", serveStaticFile);
 
 router.register("POST", "/echo", (req: HttpRequest) => {
   const body = req.body || "<empty>";
@@ -25,13 +21,12 @@ router.register("POST", "/echo", (req: HttpRequest) => {
   });
 });
 
-// Server
 export const server = net.createServer((socket: net.Socket) => {
   console.log(
     `[SERVER] Client connected: ${socket.remoteAddress}:${socket.remotePort}`
   );
 
-  socket.on("data", (data: Buffer) => {
+  socket.on("data", async (data: Buffer) => {
     const request = parseHttpRequest(data);
     console.log("[SERVER] Received data from Client:", request);
 
@@ -41,9 +36,8 @@ export const server = net.createServer((socket: net.Socket) => {
       );
       return;
     }
-    console.log("[SERVER] Parsed path:", request.path);
 
-    const response = router.handle(request);
+    const response = await router.handle(request);
     socket.write(serializeHttpResponse(response));
   });
 
