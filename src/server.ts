@@ -10,13 +10,20 @@ import type { HttpRequest } from "./types.ts";
 const router = new Router();
 
 // Register routes
-router.register("GET", "/", (req: HttpRequest) =>
+router.register("GET", "/", () =>
   buildHttpResponse(200, "<h1>Home Page</h1>", { "Content-Type": "text/html" })
 );
 
-router.register("GET", "/about", (req: HttpRequest) =>
+router.register("GET", "/about", () =>
   buildHttpResponse(200, "<h1>About Page</h1>", { "Content-Type": "text/html" })
 );
+
+router.register("POST", "/echo", (req: HttpRequest) => {
+  const body = req.body || "<empty>";
+  return buildHttpResponse(200, `You sent: ${body}`, {
+    "Content-Type": "text/plain",
+  });
+});
 
 // Server
 export const server = net.createServer((socket: net.Socket) => {
@@ -34,6 +41,7 @@ export const server = net.createServer((socket: net.Socket) => {
       );
       return;
     }
+    console.log("[SERVER] Parsed path:", request.path);
 
     const response = router.handle(request);
     socket.write(serializeHttpResponse(response));

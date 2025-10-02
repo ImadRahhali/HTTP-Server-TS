@@ -3,6 +3,7 @@ export type HttpRequest = {
   path: string;
   version: string;
   headers: Record<string, string>;
+  body?: string;
 };
 
 export type HttpResponse = {

@@ -6,7 +6,7 @@ const HOST = "localhost";
 const client = net.createConnection({ host: HOST, port: PORT }, () => {
   console.log(`[CLIENT] Connected to server at ${HOST}:${PORT}`);
 
-  client.write(`GET /index.html HTTP/1.1\r
+  client.write(`GET /about HTTP/1.1\r
 Host: localhost:4000\r
 Connection: keep-alive\r
 \r

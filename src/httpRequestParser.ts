@@ -15,7 +15,9 @@ export function parseHttpRequest(data: Buffer): HttpRequest | null {
 
   const headers = headersParser(lines);
 
-  const request: HttpRequest = { method, path, version, headers };
+  const body = parseBody(lines, headers);
+
+  const request: HttpRequest = { method, path, version, headers, body };
   return request;
 }
 
@@ -44,4 +46,21 @@ function headersParser(lines: string[]) {
   }
 
   return headers;
+}
+
+function parseBody(lines: string[], headers: Record<string, string>): string {
+  const emptyLineIndex = lines.findIndex((line) => line.trim() === "");
+  if (emptyLineIndex < 0) return "";
+
+  let body = lines.slice(emptyLineIndex + 1).join("\n");
+
+  const contentLength = headers["Content-Length"] || headers["content-length"];
+  if (contentLength) {
+    const expectedLength = parseInt(contentLength, 10);
+    if (!isNaN(expectedLength)) {
+      body = body.slice(0, expectedLength);
+    }
+  }
+
+  return body;
 }
