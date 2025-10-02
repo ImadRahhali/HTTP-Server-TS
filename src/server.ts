@@ -14,6 +14,6 @@ export const server = net.createServer((socket: net.Socket) => {
     console.log("[SERVER] Client disconnected");
   });
   socket.on("error", (err) => {
-    console.error("[SERVER] Socket error:", err);
+    console.error("[SERVER] Server Socket error:", err);
   });
 });
