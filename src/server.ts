@@ -1,5 +1,5 @@
 import * as net from "net";
-import { parseHttpRequest } from "./httpRequestUtils.js";
+import { parseHttpRequest, buildHttpResponse } from "./httpRequestUtils.ts";
 
 export const server = net.createServer((socket: net.Socket) => {
   console.log(
@@ -9,8 +9,27 @@ export const server = net.createServer((socket: net.Socket) => {
   socket.on("data", (data: Buffer) => {
     const request = parseHttpRequest(data);
     console.log("[SERVER] Received data from Client:", request);
-    // TODO: Use the build http request to write (socket.write) the response
-    socket.write("[SERVER] Hello From TCP server!\n");
+
+    if (!request) {
+      socket.end(buildHttpResponse(400, "Bad Request"));
+      return;
+    }
+
+    if (request.path === "/index.html") {
+      const response = buildHttpResponse(
+        200,
+        "<h1>Hello World</h1>",
+        request.version,
+        {
+          "Content-Type": "text/html",
+        }
+      );
+      socket.write(response);
+    } else {
+      const response = buildHttpResponse(404, "Not Found", request.version);
+
+      socket.write(response);
+    }
   });
 
   socket.on("end", () => {
@@ -20,5 +39,3 @@ export const server = net.createServer((socket: net.Socket) => {
     console.error("[SERVER] Server Socket error:", err);
   });
 });
-
-// TODO: test with curl to see if the server behaves like a real HTTP Server
