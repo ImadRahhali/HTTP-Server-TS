@@ -1,10 +1,9 @@
 import * as net from "net";
+import { parseHttpRequest } from "./httpRequestParser.ts";
 import {
-  parseHttpRequest,
   buildHttpResponse,
   serializeHttpResponse,
-} from "./httpRequestUtils.ts";
-
+} from "./httpResponseBuilder.ts";
 export const server = net.createServer((socket: net.Socket) => {
   console.log(
     `[SERVER] Client connected: ${socket.remoteAddress}:${socket.remotePort}`
