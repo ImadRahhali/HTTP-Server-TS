@@ -1,9 +1,4 @@
-type HttpRequest = {
-  method: string;
-  path: string;
-  version: string;
-  headers: Record<string, string>;
-};
+import type { HttpRequest } from "./types.ts";
 
 export function parseHttpRequest(data: Buffer): HttpRequest | null {
   const lines = data.toString().split(/\r?\n/);

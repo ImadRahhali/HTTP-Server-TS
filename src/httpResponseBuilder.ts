@@ -1,9 +1,4 @@
-type HttpResponse = {
-  statusCode: number;
-  statusMessage: string;
-  headers: Record<string, string>;
-  body: string;
-};
+import type { HttpResponse } from "./types.ts";
 
 const STATUS_MESSAGES: Record<number, string> = {
   200: "OK",
