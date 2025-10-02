@@ -1,5 +1,9 @@
 import * as net from "net";
-import { parseHttpRequest, buildHttpResponse } from "./httpRequestUtils.ts";
+import {
+  parseHttpRequest,
+  buildHttpResponse,
+  serializeHttpResponse,
+} from "./httpRequestUtils.ts";
 
 export const server = net.createServer((socket: net.Socket) => {
   console.log(
@@ -11,24 +15,20 @@ export const server = net.createServer((socket: net.Socket) => {
     console.log("[SERVER] Received data from Client:", request);
 
     if (!request) {
-      socket.end(buildHttpResponse(400, "Bad Request"));
+      const response = buildHttpResponse(400, "Bad Request");
+      socket.end(serializeHttpResponse(response));
       return;
     }
 
     if (request.path === "/index.html") {
-      const response = buildHttpResponse(
-        200,
-        "<h1>Hello World</h1>",
-        request.version,
-        {
-          "Content-Type": "text/html",
-        }
-      );
-      socket.write(response);
+      const response = buildHttpResponse(200, "<h1>Hello</h1>", {
+        "Content-Type": "text/html",
+      });
+      socket.write(serializeHttpResponse(response));
     } else {
-      const response = buildHttpResponse(404, "Not Found", request.version);
+      const response = buildHttpResponse(404, "Not Found");
 
-      socket.write(response);
+      socket.write(serializeHttpResponse(response));
     }
   });
 
