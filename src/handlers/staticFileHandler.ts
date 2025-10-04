@@ -4,19 +4,15 @@ import { promises as fs, createReadStream, Stats } from "fs";
 
 const PUBLIC_DIR = path.resolve("public");
 
-const KEEP_ALIVE_TIMEOUT = 5000;
-
 export async function serveStaticFile(
   req: HttpRequest,
   socket: any
 ): Promise<void> {
-  resetSocketTimeout(socket);
-
   let filePath: string;
 
   try {
     filePath = getSafePath(req.path);
-  } catch (err) {
+  } catch {
     return sendForbidden(socket);
   }
 
@@ -39,7 +35,6 @@ export async function serveStaticFile(
   }
 }
 
-// Helper: Safely resolve URL path
 function getSafePath(urlPath: string): string {
   const rawPath = urlPath.split("?")[0] || "/";
   const decodedPath = decodeURIComponent(rawPath);
@@ -53,7 +48,6 @@ function getSafePath(urlPath: string): string {
   return resolvedPath;
 }
 
-// Helper: Serve file as stream, or HEAD headers, with keep-alive
 function serveFile(
   req: HttpRequest,
   socket: any,
@@ -87,20 +81,8 @@ function serveFile(
     console.error("[SERVER] Stream error:", err.message);
     if (!keepAlive) socket.end();
   });
-
-  fileStream.on("end", () => {
-    if (!keepAlive) socket.end();
-  });
 }
 
-function resetSocketTimeout(socket: any) {
-  socket.setTimeout(KEEP_ALIVE_TIMEOUT, () => {
-    console.log("[SERVER] Keep-alive timeout, closing socket");
-    socket.end();
-  });
-}
-
-// Error responses
 function send404(socket: any) {
   socket.write(
     "HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\n\r\n<h1>Not Found</h1>"
@@ -115,7 +97,6 @@ function sendForbidden(socket: any) {
   socket.end();
 }
 
-// MIME types
 export function getMimeType(ext: string): string {
   switch (ext) {
     case ".html":

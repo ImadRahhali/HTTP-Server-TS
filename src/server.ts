@@ -2,8 +2,8 @@ import * as net from "net";
 import { parseHttpRequest } from "./httpRequestParser.ts";
 import { Router } from "./router.ts";
 import { serveStaticFile } from "./handlers/staticFileHandler.ts";
-import type { HttpRequest } from "./types.ts";
 import { servePostRequest } from "./handlers/postRequestHandler.ts";
+import type { HttpRequest } from "./types.ts";
 
 const router = new Router();
 
@@ -12,14 +12,18 @@ router.register("GET", "/index.html", serveStaticFile);
 router.register("GET", "/about.html", serveStaticFile);
 router.register("POST", "/echo", servePostRequest);
 
+const KEEP_ALIVE_TIMEOUT = 5000; // 5s idle time before closing socket
+
 export const server = net.createServer((socket: net.Socket) => {
   console.log(
     `[SERVER] Client connected: ${socket.remoteAddress}:${socket.remotePort}`
   );
 
   let buffer = Buffer.from([]);
+  let keepAlive = false; // Track whether to keep the connection open
 
-  socket.setTimeout(5000);
+  // Set an idle timeout (reset when data is received)
+  socket.setTimeout(KEEP_ALIVE_TIMEOUT);
   socket.on("timeout", () => {
     console.log("[SERVER] Socket idle timeout, closing connection");
     socket.end();
@@ -46,6 +50,8 @@ export const server = net.createServer((socket: net.Socket) => {
       return;
     }
 
+    keepAlive = request.headers["connection"]?.toLowerCase() === "keep-alive";
+
     try {
       await router.handle(request, socket);
 
@@ -55,6 +61,13 @@ export const server = net.createServer((socket: net.Socket) => {
       const headerEndIndex = buffer.indexOf("\r\n\r\n") + 4;
       const totalRequestLength = headerEndIndex + bodyLength;
       buffer = buffer.slice(totalRequestLength);
+
+      if (!keepAlive) {
+        socket.end();
+      } else {
+        socket.setTimeout(KEEP_ALIVE_TIMEOUT);
+        console.log("[SERVER] Connection kept alive");
+      }
     } catch (err) {
       console.error("[SERVER] Error handling request:", err);
       socket.write(
