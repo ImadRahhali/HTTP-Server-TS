@@ -29,24 +29,30 @@ npm run dev
 ## 📸 Screenshots
 
 ### Server Startup
+
 ![Server Running](./screenshots/server-startup.png)
 
 ### POST Request with Echo
+
 ![POST Request](./screenshots/post-echo.png)
 
 ### Chunked Transfer Encoding
-![Chunked Request](./screenshots/chunked-transfer.png)
 
-![Chunked Request](./screenshots/chunked-transfer2.png)
+![Chunked Request](./screenshots/chunkedTransfer1.png)
+
+![Chunked Request](./screenshots/chunkedTransfer2.png)
 
 ### Keep-Alive Connection
-![Keep-Alive](./screenshots/keep-alive.png)
+
+![Keep-Alive](./screenshots/keepAlive.png)
 
 ### HEAD Request
-![Keep-Alive](./screenshots/curl-i.png)
+
+![Keep-Alive](./screenshots/headReq.png)
 
 ### Error Handling (404)
-![Error Handling](./screenshots/notfound.png)
+
+![Error Handling](./screenshots/404.png)
 
 
 ## 🧪 Testing Commands
@@ -97,16 +103,19 @@ screenshots/                    # Testing screenshots
 ## 🎓 Technical Deep Dive
 
 **Protocol Implementation:**
+
 - Manual HTTP/1.1 parsing
 - Support for both `Content-Length` and `Transfer-Encoding: chunked`
 - Request line, headers, and body parsing from raw TCP streams
 
 **Concurrency & Performance:**
+
 - Event-driven I/O using Node.js streams
 - Non-blocking file operations with `fs/promises`
 - Async handlers for simultaneous request processing
 
 **Security:**
+
 - Path traversal detection (`403 Forbidden`)
 - Proper error handling (`400`, `404`, `500` responses)
 - Safe file serving with allowed MIME types
