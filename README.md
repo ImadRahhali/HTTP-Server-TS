@@ -28,25 +28,7 @@ npm run dev
 
 ## 📸 Screenshots
 
-### Server Startup
-![Server Running](./screenshots/server-startup.png)
 
-### POST Request with Echo
-![POST Request](./screenshots/post-echo.png)
-
-### Chunked Transfer Encoding
-![Chunked Request](./screenshots/chunked-transfer.png)
-
-![Chunked Request](./screenshots/chunked-transfer2.png)
-
-### Keep-Alive Connection
-![Keep-Alive](./screenshots/keep-alive.png)
-
-### HEAD Request
-![Keep-Alive](./screenshots/curl-i.png)
-
-### Error Handling (404)
-![Error Handling](./screenshots/notfound.png)
 
 ## 🧪 Testing Commands
 
