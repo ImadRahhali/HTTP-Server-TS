@@ -26,21 +26,45 @@ npm run dev
 # Server runs on http://localhost:4000
 ```
 
-## 🧪 Testing
+## 📸 Screenshots
+
+### Server Startup
+![Server Running](./screenshots/server-startup.png)
+
+### Static File Serving (GET Request)
+![GET Request](./screenshots/static-file-get.png)
+
+### POST Request with Echo
+![POST Request](./screenshots/post-echo.png)
+
+### Chunked Transfer Encoding
+![Chunked Request](./screenshots/chunked-transfer.png)
+
+### Keep-Alive Connection
+![Keep-Alive](./screenshots/keep-alive.png)
+
+### Error Handling (404 & 403)
+![Error Handling](./screenshots/error-handling.png)
+
+## 🧪 Testing Commands
 
 ```bash
 # Static files
-curl http://localhost:4000/index.html
+curl -i http://localhost:4000/index.html
 
 # POST request
-curl -X POST http://localhost:4000/echo -d "Hello, World!"
+curl -i -X POST http://localhost:4000/echo -d "Hello, World!"
 
 # Chunked transfer encoding
-curl -X POST http://localhost:4000/echo \
+curl -i -X POST http://localhost:4000/echo \
   -H "Transfer-Encoding: chunked" -d "Chunked data"
 
 # Keep-alive connection
 curl -v http://localhost:4000/ -H "Connection: keep-alive"
+
+# Error responses
+curl -i http://localhost:4000/nonexistent.html  # 404
+curl -i http://localhost:4000/../../../etc/passwd  # 403
 
 # Raw TCP test
 printf 'GET / HTTP/1.1\r\nHost: localhost\r\n\r\n' | nc localhost 4000
@@ -62,24 +86,24 @@ src/
 public/                         # Static assets directory
 ├── index.html
 └── about.html
+
+screenshots/                    # Testing screenshots
+└── ...
 ```
 
 ## 🎓 Technical Deep Dive
 
 **Protocol Implementation:**
-
-- Manual HTTP/1.1 parsing (RFC 7230 compliance)
+- Manual HTTP/1.1 parsing
 - Support for both `Content-Length` and `Transfer-Encoding: chunked`
 - Request line, headers, and body parsing from raw TCP streams
 
 **Concurrency & Performance:**
-
 - Event-driven I/O using Node.js streams
 - Non-blocking file operations with `fs/promises`
 - Async handlers for simultaneous request processing
 
 **Security:**
-
 - Path traversal detection (`403 Forbidden`)
 - Proper error handling (`400`, `404`, `500` responses)
 - Safe file serving with allowed MIME types
@@ -93,6 +117,6 @@ public/                         # Static assets directory
 
 ---
 
-**Note:** Educational project for learning HTTP internals. Not intended for production use.
+**⚠️ Note:** Educational project for learning HTTP internals. Not intended for production use.
 
 **Built to understand the web from first principles** 🌐
