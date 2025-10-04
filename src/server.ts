@@ -10,10 +10,12 @@ import {
 
 const router = new Router();
 
+// Static routes
 router.register("GET", "/", serveStaticFile);
 router.register("GET", "/index.html", serveStaticFile);
 router.register("GET", "/about.html", serveStaticFile);
 
+// POST /echo route
 router.register(
   "POST",
   "/echo",
@@ -21,8 +23,10 @@ router.register(
     const body = req.body || "<empty>";
     const response = buildHttpResponse(200, `You sent: ${body}`, {
       "Content-Type": "text/plain",
+      "Content-Length": Buffer.byteLength(body).toString(),
     });
     socket.write(serializeHttpResponse(response));
+    socket.end();
   }
 );
 
@@ -31,7 +35,6 @@ export const server = net.createServer((socket: net.Socket) => {
     `[SERVER] Client connected: ${socket.remoteAddress}:${socket.remotePort}`
   );
 
-  // Initialize per-socket buffer
   let buffer = Buffer.from([]);
 
   socket.on("data", async (chunk: Buffer) => {
@@ -43,7 +46,7 @@ export const server = net.createServer((socket: net.Socket) => {
     try {
       request = parseHttpRequest(buffer);
     } catch {
-      // Incomplete request — wait for more data
+      // Incomplete request, wait for more data
       return;
     }
 
@@ -59,7 +62,6 @@ export const server = net.createServer((socket: net.Socket) => {
     try {
       await router.handle(request, socket);
 
-      // Remove the processed bytes from the buffer (if body length known)
       const contentLength = request.headers["content-length"];
       const bodyLength = contentLength ? parseInt(contentLength, 10) : 0;
       const headerEndIndex = buffer.indexOf("\r\n\r\n") + 4;
