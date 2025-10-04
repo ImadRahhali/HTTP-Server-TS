@@ -20,6 +20,32 @@ export async function serveStaticFile(req: HttpRequest): Promise<HttpResponse> {
   }
 }
 
+function getSafePath(urlPath: string): string {
+  const rawPath = urlPath.split("?")[0] || "/";
+  const decodedPath = decodeURIComponent(rawPath);
+  const resolvedPath = path.resolve(PUBLIC_DIR, "." + decodedPath);
+  const relativePath = path.relative(PUBLIC_DIR, resolvedPath);
+
+  if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
+    throw new Error("Forbidden: Path traversal detected");
+  }
+  return resolvedPath;
+}
+
+function send404(socket: any) {
+  socket.write(
+    "HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\n\r\n<h1>Not Found</h1>"
+  );
+  socket.end();
+}
+
+function sendForbidden(socket: any) {
+  socket.write(
+    "HTTP/1.1 403 Forbidden\r\nContent-Type: text/html\r\n\r\n<h1>Forbidden</h1>"
+  );
+  socket.end();
+}
+
 function getMimeType(ext: string): string {
   switch (ext) {
     case ".html":
@@ -38,16 +64,4 @@ function getMimeType(ext: string): string {
     default:
       return "text/plain";
   }
-}
-
-function getSafePath(urlPath: string): string {
-  const rawPath = urlPath.split("?")[0] || "/";
-  const decodedPath = decodeURIComponent(rawPath);
-  const resolvedPath = path.resolve(PUBLIC_DIR, "." + decodedPath);
-  const relativePath = path.relative(PUBLIC_DIR, resolvedPath);
-
-  if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
-    throw new Error("Forbidden: Path traversal detected");
-  }
-  return resolvedPath;
 }
