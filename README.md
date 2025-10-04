@@ -31,20 +31,22 @@ npm run dev
 ### Server Startup
 ![Server Running](./screenshots/server-startup.png)
 
-### Static File Serving (GET Request)
-![GET Request](./screenshots/static-file-get.png)
-
 ### POST Request with Echo
 ![POST Request](./screenshots/post-echo.png)
 
 ### Chunked Transfer Encoding
-![Chunked Request](./screenshots/chunked-transfer.png)
+![Chunked Request](./screenshots/chunked-transfer1.png)
+
+![Chunked Request](./screenshots/chunked-transfer2.png)
 
 ### Keep-Alive Connection
 ![Keep-Alive](./screenshots/keep-alive.png)
 
-### Error Handling (404 & 403)
-![Error Handling](./screenshots/error-handling.png)
+### HEAD Request
+![Keep-Alive](./screenshots/curl-i.png)
+
+### Error Handling (404)
+![Error Handling](./screenshots/notfound.png)
 
 ## 🧪 Testing Commands
 
