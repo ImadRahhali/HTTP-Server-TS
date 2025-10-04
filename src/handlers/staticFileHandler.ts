@@ -18,21 +18,24 @@ export async function serveStaticFile(
 
   try {
     const stats: Stats = await fs.stat(filePath);
+
     if (stats.isDirectory()) {
       const indexFile = path.join(filePath, "index.html");
       try {
         await fs.access(indexFile);
-        return serveFileStream(socket, indexFile);
+        return serveFile(req, socket, indexFile, stats);
       } catch {
         return send404(socket);
       }
     }
-    return serveFileStream(socket, filePath);
-  } catch (err) {
+
+    return serveFile(req, socket, filePath, stats);
+  } catch {
     return send404(socket);
   }
 }
 
+// Helper: Safely resolve URL path
 function getSafePath(urlPath: string): string {
   const rawPath = urlPath.split("?")[0] || "/";
   const decodedPath = decodeURIComponent(rawPath);
@@ -42,14 +45,33 @@ function getSafePath(urlPath: string): string {
   if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
     throw new Error("Forbidden: Path traversal detected");
   }
+
   return resolvedPath;
 }
 
-function serveFileStream(socket: any, filePath: string) {
+// Helper: Serve file as stream, or HEAD headers
+function serveFile(
+  req: HttpRequest,
+  socket: any,
+  filePath: string,
+  stats: Stats
+) {
   const ext = path.extname(filePath).toLowerCase();
   const contentType = getMimeType(ext);
 
-  socket.write(`HTTP/1.1 200 OK\r\nContent-Type: ${contentType}\r\n\r\n`);
+  const headers = [
+    `HTTP/1.1 200 OK`,
+    `Content-Type: ${contentType}`,
+    `Content-Length: ${stats.size}`,
+    "\r\n",
+  ].join("\r\n");
+
+  socket.write(headers);
+
+  if (req.method.toUpperCase() === "HEAD") {
+    socket.end();
+    return;
+  }
 
   const fileStream = createReadStream(filePath);
   fileStream.pipe(socket);
@@ -59,11 +81,10 @@ function serveFileStream(socket: any, filePath: string) {
     socket.end();
   });
 
-  fileStream.on("end", () => {
-    socket.end();
-  });
+  fileStream.on("end", () => socket.end());
 }
 
+// Error responses
 function send404(socket: any) {
   socket.write(
     "HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\n\r\n<h1>Not Found</h1>"
@@ -78,7 +99,8 @@ function sendForbidden(socket: any) {
   socket.end();
 }
 
-function getMimeType(ext: string): string {
+// MIME types
+export function getMimeType(ext: string): string {
   switch (ext) {
     case ".html":
       return "text/html";

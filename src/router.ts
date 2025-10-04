@@ -18,7 +18,7 @@ export class Router {
     const methodRoutes = this.routes[req.method.toUpperCase()];
 
     if (!methodRoutes) {
-      if (req.method.toUpperCase() === "GET") {
+      if (["GET", "HEAD"].includes(req.method.toUpperCase())) {
         return serveStaticFile(req, socket);
       }
       return send404(socket);
@@ -29,7 +29,7 @@ export class Router {
       return handler(req, socket);
     }
 
-    if (req.method.toUpperCase() === "GET") {
+    if (["GET", "HEAD"].includes(req.method.toUpperCase())) {
       return serveStaticFile(req, socket);
     }
 
