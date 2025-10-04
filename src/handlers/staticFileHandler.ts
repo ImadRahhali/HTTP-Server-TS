@@ -1,22 +1,35 @@
-import type { HttpRequest, HttpResponse } from "../types.ts";
-import { buildHttpResponse } from "../httpResponseBuilder.ts";
+import type { HttpRequest } from "../types.ts";
 import path from "path";
 import { promises as fs, createReadStream, Stats } from "fs";
 
 const PUBLIC_DIR = path.resolve("public");
 
-export async function serveStaticFile(req: HttpRequest): Promise<HttpResponse> {
-  const filePath = getSafePath(req.path);
+export async function serveStaticFile(
+  req: HttpRequest,
+  socket: any
+): Promise<void> {
+  let filePath: string;
 
   try {
-    const data = await fs.readFile(filePath, "utf-8");
-    const ext = path.extname(filePath).toLowerCase();
-    const contentType = getMimeType(ext);
-    return buildHttpResponse(200, data, { "Content-Type": contentType });
+    filePath = getSafePath(req.path);
   } catch (err) {
-    return buildHttpResponse(404, "<h1>Not Found</h1>", {
-      "Content-Type": "text/html",
-    });
+    return sendForbidden(socket);
+  }
+
+  try {
+    const stats: Stats = await fs.stat(filePath);
+    if (stats.isDirectory()) {
+      const indexFile = path.join(filePath, "index.html");
+      try {
+        await fs.access(indexFile);
+        return serveFileStream(socket, indexFile);
+      } catch {
+        return send404(socket);
+      }
+    }
+    return serveFileStream(socket, filePath);
+  } catch (err) {
+    return send404(socket);
   }
 }
 
