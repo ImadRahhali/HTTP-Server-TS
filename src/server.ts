@@ -3,6 +3,10 @@ import { parseHttpRequest } from "./httpRequestParser.ts";
 import { Router } from "./router.ts";
 import { serveStaticFile } from "./handlers/staticFileHandler.ts";
 import type { HttpRequest } from "./types.ts";
+import {
+  buildHttpResponse,
+  serializeHttpResponse,
+} from "./httpResponseBuilder.ts";
 
 const router = new Router();
 
@@ -10,14 +14,17 @@ router.register("GET", "/", serveStaticFile);
 router.register("GET", "/index.html", serveStaticFile);
 router.register("GET", "/about.html", serveStaticFile);
 
-router.register("POST", "/echo", async (req: HttpRequest, socket) => {
-  const body = req.body || "<empty>";
-  const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${Buffer.byteLength(
-    body
-  )}\r\n\r\n${body}`;
-  socket.write(response);
-  socket.end();
-});
+router.register(
+  "POST",
+  "/echo",
+  async (req: HttpRequest, socket: net.Socket) => {
+    const body = req.body || "<empty>";
+    const response = buildHttpResponse(200, `You sent: ${body}`, {
+      "Content-Type": "text/plain",
+    });
+    socket.write(serializeHttpResponse(response));
+  }
+);
 
 export const server = net.createServer((socket: net.Socket) => {
   console.log(
