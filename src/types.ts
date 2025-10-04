@@ -1,3 +1,5 @@
+import type { Socket } from "net";
+
 export type HttpRequest = {
   method: string;
   path: string;
@@ -13,4 +15,4 @@ export type HttpResponse = {
   body: string;
 };
 
-export type Handler = (req: HttpRequest) => HttpResponse;
+export type Handler = (req: HttpRequest, socket: Socket) => Promise<void>;

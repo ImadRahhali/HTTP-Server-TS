@@ -1,37 +1,45 @@
+import type { Socket } from "net";
 import { serveStaticFile } from "./handlers/staticFileHandler.ts";
-import { buildHttpResponse } from "./httpResponseBuilder.ts";
-import type { HttpRequest, HttpResponse, Handler } from "./type.ts";
+import type { Handler, HttpRequest } from "./types.js";
 
 export class Router {
   private routes: Record<string, Record<string, Handler>> = {};
 
   register(method: string, path: string, handler: Handler) {
     method = method.toUpperCase();
+    if (!this.routes[method]) this.routes[method] = {};
     if (!this.routes[method]) {
       this.routes[method] = {};
     }
     (this.routes[method] ??= {})[path] = handler;
   }
 
-  async handle(req: HttpRequest): Promise<HttpResponse> {
+  async handle(req: HttpRequest, socket: Socket): Promise<void> {
     const methodRoutes = this.routes[req.method.toUpperCase()];
 
     if (!methodRoutes) {
       if (req.method.toUpperCase() === "GET") {
-        return await serveStaticFile(req);
+        return serveStaticFile(req, socket);
       }
-      return buildHttpResponse(404, "<h1>Not Found</h1>");
+      return send404(socket);
     }
 
     const handler = methodRoutes[req.path];
     if (handler) {
-      return await handler(req);
+      return handler(req, socket);
     }
 
     if (req.method.toUpperCase() === "GET") {
-      return await serveStaticFile(req);
+      return serveStaticFile(req, socket);
     }
 
-    return buildHttpResponse(404, "<h1>Not Found</h1>");
+    return send404(socket);
   }
+}
+
+function send404(socket: Socket) {
+  socket.write(
+    "HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\n\r\n<h1>Not Found</h1>"
+  );
+  socket.end();
 }
