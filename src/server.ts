@@ -3,7 +3,7 @@ import { parseHttpRequest } from "./httpRequestParser.ts";
 import { Router } from "./router.ts";
 import { serveStaticFile } from "./handlers/staticFileHandler.ts";
 import type { HttpRequest } from "./types.ts";
-import { servePostRequest } from "./handlers/postRequestHandler.js";
+import { servePostRequest } from "./handlers/postRequestHandler.ts";
 
 const router = new Router();
 
@@ -19,16 +19,21 @@ export const server = net.createServer((socket: net.Socket) => {
 
   let buffer = Buffer.from([]);
 
+  socket.setTimeout(5000);
+  socket.on("timeout", () => {
+    console.log("[SERVER] Socket idle timeout, closing connection");
+    socket.end();
+  });
+
   socket.on("data", async (chunk: Buffer) => {
     console.log("[SERVER] Raw data chunk received:", chunk.toString());
-
     buffer = Buffer.concat([buffer, chunk]);
 
     let request: HttpRequest | null;
     try {
       request = parseHttpRequest(buffer);
     } catch {
-      // Incomplete request, wait for more data
+      // Incomplete request — wait for more data
       return;
     }
 
@@ -44,6 +49,7 @@ export const server = net.createServer((socket: net.Socket) => {
     try {
       await router.handle(request, socket);
 
+      // Remove processed bytes from buffer
       const contentLength = request.headers["content-length"];
       const bodyLength = contentLength ? parseInt(contentLength, 10) : 0;
       const headerEndIndex = buffer.indexOf("\r\n\r\n") + 4;
@@ -60,10 +66,14 @@ export const server = net.createServer((socket: net.Socket) => {
   });
 
   socket.on("end", () => {
-    console.log("[SERVER] Client disconnected");
+    console.log("[SERVER] Client finished sending data (FIN received)");
+  });
+
+  socket.on("close", (hadError) => {
+    console.log("[SERVER] Socket fully closed", hadError ? "due to error" : "");
   });
 
   socket.on("error", (err) => {
-    console.error("[SERVER] Server Socket error:", err.message);
+    console.error("[SERVER] Socket error:", err.message);
   });
 });

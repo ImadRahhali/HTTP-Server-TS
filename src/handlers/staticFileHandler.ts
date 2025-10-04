@@ -4,10 +4,14 @@ import { promises as fs, createReadStream, Stats } from "fs";
 
 const PUBLIC_DIR = path.resolve("public");
 
+const KEEP_ALIVE_TIMEOUT = 5000;
+
 export async function serveStaticFile(
   req: HttpRequest,
   socket: any
 ): Promise<void> {
+  resetSocketTimeout(socket);
+
   let filePath: string;
 
   try {
@@ -49,7 +53,7 @@ function getSafePath(urlPath: string): string {
   return resolvedPath;
 }
 
-// Helper: Serve file as stream, or HEAD headers
+// Helper: Serve file as stream, or HEAD headers, with keep-alive
 function serveFile(
   req: HttpRequest,
   socket: any,
@@ -59,29 +63,41 @@ function serveFile(
   const ext = path.extname(filePath).toLowerCase();
   const contentType = getMimeType(ext);
 
+  const keepAlive = req.headers["connection"]?.toLowerCase() === "keep-alive";
+
   const headers = [
     `HTTP/1.1 200 OK`,
     `Content-Type: ${contentType}`,
     `Content-Length: ${stats.size}`,
+    `Connection: ${keepAlive ? "keep-alive" : "close"}`,
     "\r\n",
   ].join("\r\n");
 
   socket.write(headers);
 
   if (req.method.toUpperCase() === "HEAD") {
-    socket.end();
+    if (!keepAlive) socket.end();
     return;
   }
 
   const fileStream = createReadStream(filePath);
-  fileStream.pipe(socket);
+  fileStream.pipe(socket, { end: !keepAlive });
 
   fileStream.on("error", (err) => {
     console.error("[SERVER] Stream error:", err.message);
-    socket.end();
+    if (!keepAlive) socket.end();
   });
 
-  fileStream.on("end", () => socket.end());
+  fileStream.on("end", () => {
+    if (!keepAlive) socket.end();
+  });
+}
+
+function resetSocketTimeout(socket: any) {
+  socket.setTimeout(KEEP_ALIVE_TIMEOUT, () => {
+    console.log("[SERVER] Keep-alive timeout, closing socket");
+    socket.end();
+  });
 }
 
 // Error responses
