@@ -7,8 +7,10 @@ export class Router {
 
   register(method: string, path: string, handler: Handler) {
     method = method.toUpperCase();
-    if (!this.routes[method]) this.routes[method] = {};
-    this.routes[method][path] = handler;
+    if (!this.routes[method]) {
+      this.routes[method] = {};
+    }
+    (this.routes[method] ??= {})[path] = handler;
   }
 
   async handle(req: HttpRequest): Promise<HttpResponse> {

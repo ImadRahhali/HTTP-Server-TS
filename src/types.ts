@@ -14,9 +14,3 @@ export type HttpResponse = {
 };
 
 export type Handler = (req: HttpRequest) => HttpResponse;
-
-export type RouteTable = {
-  [method: string]: {
-    [path: string]: Handler;
-  };
-};
