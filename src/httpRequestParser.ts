@@ -4,7 +4,6 @@ export function parseHttpRequest(data: Buffer): HttpRequest | null {
   const text = data.toString();
   const headerEnd = text.indexOf("\r\n\r\n");
 
-  // Headers not complete yet
   if (headerEnd === -1) throw new Error("Incomplete request");
 
   const headerPart = text.slice(0, headerEnd);
@@ -32,7 +31,7 @@ function requestLineParser(line: string): [string, string, string] | null {
   return [parts[0], parts[1], parts[2]];
 }
 
-function headersParser(lines: string[]) {
+function headersParser(lines: string[]): Record<string, string> {
   const headers: Record<string, string> = {};
 
   for (let i = 1; i < lines.length; i++) {
@@ -54,11 +53,50 @@ function parseBody(
   bodyString: string,
   headers: Record<string, string>
 ): string {
+  const transferEncoding = headers["transfer-encoding"];
+  if (transferEncoding?.toLowerCase() === "chunked") {
+    return parseChunkedBody(bodyString);
+  }
+
   const contentLength = headers["content-length"];
-  if (!contentLength) return bodyString;
+  if (contentLength) {
+    const length = parseInt(contentLength, 10);
+    if (bodyString.length < length) throw new Error("Incomplete body");
+    return bodyString.slice(0, length);
+  }
 
-  const length = parseInt(contentLength, 10);
-  if (bodyString.length < length) throw new Error("Incomplete body");
+  return bodyString;
+}
 
-  return bodyString.slice(0, length);
+function parseChunkedBody(bodyString: string): string {
+  let i = 0;
+  let result = "";
+
+  while (i < bodyString.length) {
+    const crlfIndex = bodyString.indexOf("\r\n", i);
+    if (crlfIndex === -1) break;
+
+    const chunkSizeHex = bodyString.slice(i, crlfIndex).trim();
+    const chunkSize = parseInt(chunkSizeHex, 16);
+    if (isNaN(chunkSize)) throw new Error("Invalid chunk size");
+
+    if (chunkSize === 0) break;
+
+    const chunkStart = crlfIndex + 2;
+    const chunkEnd = chunkStart + chunkSize;
+    const chunkData = bodyString.slice(chunkStart, chunkEnd);
+
+    console.log(
+      "[CHUNKED] Size:",
+      chunkSize,
+      "Data:",
+      JSON.stringify(chunkData)
+    );
+
+    result += chunkData;
+
+    i = chunkEnd + 2;
+  }
+
+  return result;
 }
