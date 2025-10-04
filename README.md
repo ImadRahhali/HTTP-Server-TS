@@ -26,35 +26,6 @@ npm run dev
 # Server runs on http://localhost:4000
 ```
 
-## 📸 Screenshots
-
-### Server Startup
-
-![Server Running](./screenshots/server-startup.png)
-
-### POST Request with Echo
-
-![POST Request](./screenshots/post-echo.png)
-
-### Chunked Transfer Encoding
-
-![Chunked Request](./screenshots/chunkedTransfer1.png)
-
-![Chunked Request](./screenshots/chunkedTransfer2.png)
-
-### Keep-Alive Connection
-
-![Keep-Alive](./screenshots/keepAlive.png)
-
-### HEAD Request
-
-![Keep-Alive](./screenshots/headReq.png)
-
-### Error Handling (404)
-
-![Error Handling](./screenshots/404.png)
-
-
 ## 🧪 Testing Commands
 
 ```bash
@@ -119,6 +90,35 @@ screenshots/                    # Testing screenshots
 - Path traversal detection (`403 Forbidden`)
 - Proper error handling (`400`, `404`, `500` responses)
 - Safe file serving with allowed MIME types
+
+## 📸 Screenshots
+
+### Server Startup
+
+![Server Running](./screenshots/server-startup.png)
+
+### POST Request with Echo
+
+![POST Request](./screenshots/post-echo.png)
+
+### Chunked Transfer Encoding
+
+![Chunked Request](./screenshots/chunkedTransfer1.png)
+
+![Chunked Request](./screenshots/chunkedTransfer2.png)
+
+### Keep-Alive Connection
+
+![Keep-Alive](./screenshots/keepAlive.png)
+
+### HEAD Request
+
+![Keep-Alive](./screenshots/headReq.png)
+
+### Error Handling (404)
+
+![Error Handling](./screenshots/404.png)
+
 
 ## 🛠️ Built With
 
