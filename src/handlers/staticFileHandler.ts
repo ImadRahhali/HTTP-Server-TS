@@ -1,7 +1,7 @@
 import type { HttpRequest, HttpResponse } from "../types.ts";
 import { buildHttpResponse } from "../httpResponseBuilder.ts";
 import path from "path";
-import { promises as fs } from "fs";
+import { promises as fs, createReadStream, Stats } from "fs";
 
 const PUBLIC_DIR = path.resolve("public");
 
@@ -30,6 +30,25 @@ function getSafePath(urlPath: string): string {
     throw new Error("Forbidden: Path traversal detected");
   }
   return resolvedPath;
+}
+
+function serveFileStream(socket: any, filePath: string) {
+  const ext = path.extname(filePath).toLowerCase();
+  const contentType = getMimeType(ext);
+
+  socket.write(`HTTP/1.1 200 OK\r\nContent-Type: ${contentType}\r\n\r\n`);
+
+  const fileStream = createReadStream(filePath);
+  fileStream.pipe(socket);
+
+  fileStream.on("error", (err) => {
+    console.error("[SERVER] Stream error:", err.message);
+    socket.end();
+  });
+
+  fileStream.on("end", () => {
+    socket.end();
+  });
 }
 
 function send404(socket: any) {
