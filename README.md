@@ -1,6 +1,6 @@
 # HTTP Server - TypeScript
 
-> A custom HTTP/1.1 server implementation built from scratch using Node.js and TypeScript. Zero web frameworks—just raw TCP sockets and protocol-level networking.
+> A custom HTTP/1.1 server implementation built from scratch using Node.js and TypeScript. Zero web frameworks, just raw TCP sockets and protocol-level networking.
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
