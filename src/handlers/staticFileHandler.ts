@@ -6,10 +6,7 @@ import { promises as fs } from "fs";
 const PUBLIC_DIR = path.resolve("public");
 
 export async function serveStaticFile(req: HttpRequest): Promise<HttpResponse> {
-  const filePath = path.join(
-    PUBLIC_DIR,
-    req.path === "/" ? "index.html" : req.path
-  );
+  const filePath = getSafePath(req.path);
 
   try {
     const data = await fs.readFile(filePath, "utf-8");
@@ -41,4 +38,16 @@ function getMimeType(ext: string): string {
     default:
       return "text/plain";
   }
+}
+
+function getSafePath(urlPath: string): string {
+  const rawPath = urlPath.split("?")[0] || "/";
+  const decodedPath = decodeURIComponent(rawPath);
+  const resolvedPath = path.resolve(PUBLIC_DIR, "." + decodedPath);
+  const relativePath = path.relative(PUBLIC_DIR, resolvedPath);
+
+  if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
+    throw new Error("Forbidden: Path traversal detected");
+  }
+  return resolvedPath;
 }
