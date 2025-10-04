@@ -1,24 +1,26 @@
 import type { HttpRequest } from "./types.ts";
 
 export function parseHttpRequest(data: Buffer): HttpRequest | null {
-  const lines = data.toString().split(/\r?\n/);
+  const text = data.toString();
+  const headerEnd = text.indexOf("\r\n\r\n");
 
-  if (lines.length === 0 || !lines[0]) {
-    console.error("Empty request");
-    return null;
-  }
+  // Headers not complete yet
+  if (headerEnd === -1) throw new Error("Incomplete request");
+
+  const headerPart = text.slice(0, headerEnd);
+  const lines = headerPart.split(/\r?\n/);
+
+  if (lines.length === 0 || !lines[0]) return null;
 
   const requestLineParts = requestLineParser(lines[0]);
   if (!requestLineParts) return null;
 
   const [method, path, version] = requestLineParts;
-
   const headers = headersParser(lines);
 
-  const body = parseBody(lines, headers);
+  const body = parseBody(text.slice(headerEnd + 4), headers);
 
-  const request: HttpRequest = { method, path, version, headers, body };
-  return request;
+  return { method, path, version, headers, body };
 }
 
 function requestLineParser(line: string): [string, string, string] | null {
@@ -48,19 +50,15 @@ function headersParser(lines: string[]) {
   return headers;
 }
 
-function parseBody(lines: string[], headers: Record<string, string>): string {
-  const emptyLineIndex = lines.findIndex((line) => line.trim() === "");
-  if (emptyLineIndex < 0) return "";
+function parseBody(
+  bodyString: string,
+  headers: Record<string, string>
+): string {
+  const contentLength = headers["content-length"];
+  if (!contentLength) return bodyString;
 
-  let body = lines.slice(emptyLineIndex + 1).join("\n");
+  const length = parseInt(contentLength, 10);
+  if (bodyString.length < length) throw new Error("Incomplete body");
 
-  const contentLength = headers["Content-Length"] || headers["content-length"];
-  if (contentLength) {
-    const expectedLength = parseInt(contentLength, 10);
-    if (!isNaN(expectedLength)) {
-      body = body.slice(0, expectedLength);
-    }
-  }
-
-  return body;
+  return bodyString.slice(0, length);
 }
