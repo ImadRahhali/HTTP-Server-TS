@@ -35,7 +35,7 @@ npm run dev
 ![POST Request](./screenshots/post-echo.png)
 
 ### Chunked Transfer Encoding
-![Chunked Request](./screenshots/chunked-transfer1.png)
+![Chunked Request](./screenshots/chunked-transfer.png)
 
 ![Chunked Request](./screenshots/chunked-transfer2.png)
 
